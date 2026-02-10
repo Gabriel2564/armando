@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Detalle de cada producto/servicio en una venta
- */
 @Entity
 @Table(name = "detalle_ventas")
 @Data
@@ -29,6 +26,10 @@ public class DetalleVenta {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "lote_id")
+    private Lote lote; // De qué lote se vendió
+
     @Column(nullable = false)
     private Integer cantidad;
 
@@ -41,11 +42,13 @@ public class DetalleVenta {
     @Column(name = "es_servicio")
     private Boolean esServicio = false;
 
-    @Column(length = 200)
-    private String descripcion;
+    @Column(name = "precio_manual", precision = 10, scale = 2)
+    private BigDecimal precioManual; // Para parchado con precio variable
 
     public void calcularSubtotal() {
-        if (cantidad != null && precioUnitario != null) {
+        if (precioManual != null) {
+            subtotal = precioManual;
+        } else if (cantidad != null && precioUnitario != null) {
             subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
         } else {
             subtotal = BigDecimal.ZERO;

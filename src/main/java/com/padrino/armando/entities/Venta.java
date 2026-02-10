@@ -10,9 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entidad que representa una venta realizada
- */
 @Entity
 @Table(name = "ventas")
 @Data
@@ -33,17 +30,8 @@ public class Venta {
     @Column(name = "total", precision = 10, scale = 2)
     private BigDecimal total;
 
-    @Column(name = "subtotal", precision = 10, scale = 2)
-    private BigDecimal subtotal;
-
-    @Column(name = "igv", precision = 10, scale = 2)
-    private BigDecimal igv;
-
     @Column(length = 200)
     private String cliente;
-
-    @Column(length = 20)
-    private String documento;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleVenta> detalles = new ArrayList<>();
@@ -57,20 +45,13 @@ public class Venta {
             fechaVenta = LocalDateTime.now();
         }
         if (numeroBoleta == null) {
-            numeroBoleta = generarNumeroBoleta();
+            numeroBoleta = "B" + System.currentTimeMillis();
         }
     }
 
-    private String generarNumeroBoleta() {
-        return "B" + System.currentTimeMillis();
-    }
-
-    public void calcularTotales() {
-        subtotal = detalles.stream()
+    public void calcularTotal() {
+        total = detalles.stream()
                 .map(DetalleVenta::getSubtotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        igv = subtotal.multiply(new BigDecimal("0.18"));
-        total = subtotal.add(igv);
     }
 }

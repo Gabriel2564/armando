@@ -21,12 +21,9 @@ public class VentaDTO {
     private String numeroBoleta;
     private LocalDateTime fechaVenta;
     private BigDecimal total;
-    private BigDecimal subtotal;
-    private BigDecimal igv;
     private String cliente;
-    private String documento;
     private String observaciones;
 
-    @NotEmpty(message = "Debe agregar al menos un producto o servicio")
+    @NotEmpty(message = "Debe agregar al menos un producto")
     private List<DetalleVentaDTO> detalles = new ArrayList<>();
 }

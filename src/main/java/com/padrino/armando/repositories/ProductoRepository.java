@@ -3,7 +3,6 @@ package com.padrino.armando.repositories;
 import com.padrino.armando.entities.Producto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,31 +13,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     Optional<Producto> findByCodigo(String codigo);
 
-    boolean existsByCodigo(String codigo);
+    List<Producto> findByTipo(String tipo);
 
-    List<Producto> findByCategoria(String categoria);
+    @Query("SELECT DISTINCT p.tipo FROM Producto p ORDER BY p.tipo")
+    List<String> findAllTipos();
 
-    List<Producto> findByProveedor(String proveedor);
-
-    @Query("SELECT p FROM Producto p WHERE p.stockActual <= p.stockMinimo")
-    List<Producto> findProductosConStockBajo();
-
-    List<Producto> findByNombreContainingIgnoreCase(String nombre);
-
-    @Query("SELECT p FROM Producto p WHERE " +
-            "LOWER(p.codigo) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(p.nombre) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-            "LOWER(p.categoria) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
-    List<Producto> buscarProductos(@Param("searchTerm") String searchTerm);
-
-    @Query("SELECT DISTINCT p.categoria FROM Producto p WHERE p.categoria IS NOT NULL ORDER BY p.categoria")
-    List<String> findAllCategorias();
-
-    @Query("SELECT DISTINCT p.proveedor FROM Producto p WHERE p.proveedor IS NOT NULL ORDER BY p.proveedor")
-    List<String> findAllProveedores();
-
-    @Query("SELECT COUNT(p) FROM Producto p WHERE p.stockActual <= p.stockMinimo")
-    Long contarProductosConStockBajo();
-
-    List<Producto> findByUbicacion(String ubicacion);
+    @Query("SELECT p FROM Producto p WHERE LOWER(p.codigo) LIKE LOWER(CONCAT('%', :term, '%')) " +
+            "OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :term, '%'))")
+    List<Producto> buscarPorCodigoONombre(String term);
 }
