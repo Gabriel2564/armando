@@ -16,4 +16,10 @@ public class DetalleOrdenResponseDTO {
     private Integer cantidad;
     private BigDecimal precioUnitario;
     private BigDecimal precioTotal;
+
+    // === Campos de costeo ===
+    private BigDecimal costoUnitario;
+    private BigDecimal costoTotal;
+    private BigDecimal ganancia;
+    private BigDecimal margen;
 }

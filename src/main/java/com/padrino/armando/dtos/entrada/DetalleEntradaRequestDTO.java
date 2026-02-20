@@ -1,5 +1,6 @@
 package com.padrino.armando.dtos.entrada;
 
+import com.padrino.armando.enums.Moneda;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -17,4 +18,9 @@ public class DetalleEntradaRequestDTO {
     private Integer cantidad;
 
     private BigDecimal precioUnitario;
+
+    // === Campos nuevos para costeo ===
+    private Moneda moneda;             // SOL o DOL
+    private BigDecimal costoUnitario;  // costo en la moneda original
+    private BigDecimal tipoCambio;     // TC si es dolares
 }

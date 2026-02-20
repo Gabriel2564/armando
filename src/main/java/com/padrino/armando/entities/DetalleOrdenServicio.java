@@ -30,9 +30,23 @@ public class DetalleOrdenServicio {
     @Column(nullable = false)
     private Integer cantidad;
 
+    // Precio de venta
     @Column(name = "precio_unitario", precision = 10, scale = 2)
     private BigDecimal precioUnitario;
 
     @Column(name = "precio_total", precision = 10, scale = 2)
     private BigDecimal precioTotal;
+
+    // === Campos nuevos para costeo ===
+    @Column(name = "costo_unitario", precision = 10, scale = 2)
+    private BigDecimal costoUnitario;
+
+    @Column(name = "costo_total", precision = 12, scale = 2)
+    private BigDecimal costoTotal;
+
+    @Column(name = "ganancia", precision = 12, scale = 2)
+    private BigDecimal ganancia;
+
+    @Column(name = "margen", precision = 5, scale = 4)
+    private BigDecimal margen;
 }

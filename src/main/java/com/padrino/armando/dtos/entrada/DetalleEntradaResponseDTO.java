@@ -1,5 +1,6 @@
 package com.padrino.armando.dtos.entrada;
 
+import com.padrino.armando.enums.Moneda;
 import lombok.*;
 import java.math.BigDecimal;
 
@@ -16,4 +17,11 @@ public class DetalleEntradaResponseDTO {
     private Integer cantidad;
     private BigDecimal precioUnitario;
     private BigDecimal precioTotal;
+
+    // === Campos de costeo ===
+    private Moneda moneda;
+    private BigDecimal costoUnitario;
+    private BigDecimal tipoCambio;
+    private BigDecimal costoUnitarioSoles;
+    private BigDecimal costoTotalSoles;
 }

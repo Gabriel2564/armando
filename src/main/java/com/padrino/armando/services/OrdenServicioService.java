@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class OrdenServicioService {
     private final LlantaRepository llantaRepository;
     private final ServicioRepository servicioRepository;
     private final OrdenServicioMapper ordenServicioMapper;
+    private final CostoPromedioService costoPromedioService;
 
     @Transactional(readOnly = true)
     public List<OrdenServicioResponseDTO> listarTodas() {
@@ -83,14 +85,24 @@ public class OrdenServicioService {
                     .precioUnitario(detalleDTO.getPrecioUnitario())
                     .build();
 
+            BigDecimal costoPromedio = BigDecimal.ZERO;
+
             if (detalleDTO.getLlantaId() != null) {
                 Llanta llanta = llantaService.findLlantaOrThrow(detalleDTO.getLlantaId());
                 validarStockLlanta(llanta.getId(), detalleDTO.getCantidad());
                 detalle.setLlanta(llanta);
+
+                // Obtener costo promedio actual de esta llanta
+                costoPromedio = costoPromedioService.calcularCostoPromedio(llanta.getId());
+
             } else if (detalleDTO.getServicioId() != null) {
                 Servicio servicio = servicioService.findServicioOrThrow(detalleDTO.getServicioId());
                 validarStockServicio(servicio.getId(), detalleDTO.getCantidad());
                 detalle.setServicio(servicio);
+                // Para servicios el costo es el precio del servicio
+                if (servicio.getPrecio() != null) {
+                    costoPromedio = servicio.getPrecio();
+                }
             } else {
                 throw new InvalidOperationException("Cada detalle debe tener un llantaId o servicioId");
             }
@@ -98,6 +110,21 @@ public class OrdenServicioService {
             BigDecimal precioTotal = detalleDTO.getPrecioUnitario()
                     .multiply(BigDecimal.valueOf(detalleDTO.getCantidad()));
             detalle.setPrecioTotal(precioTotal);
+
+            // Calcular costo, ganancia y margen
+            detalle.setCostoUnitario(costoPromedio);
+            BigDecimal costoTotal = costoPromedio.multiply(BigDecimal.valueOf(detalleDTO.getCantidad()));
+            detalle.setCostoTotal(costoTotal);
+
+            BigDecimal ganancia = precioTotal.subtract(costoTotal);
+            detalle.setGanancia(ganancia);
+
+            if (precioTotal.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal margen = ganancia.divide(precioTotal, 4, RoundingMode.HALF_UP);
+                detalle.setMargen(margen);
+            } else {
+                detalle.setMargen(BigDecimal.ZERO);
+            }
 
             orden.getDetalles().add(detalle);
             total = total.add(precioTotal);
@@ -123,7 +150,6 @@ public class OrdenServicioService {
         Integer entradas = llantaRepository.calcularTotalEntradas(llantaId);
         Integer salidas = llantaRepository.calcularTotalSalidas(llantaId);
         int stockActual = entradas - salidas;
-
         if (stockActual < cantidadSolicitada) {
             throw new InsufficientStockException(
                     "Stock insuficiente de llanta. Disponible: " + stockActual + ", Solicitado: " + cantidadSolicitada);
@@ -134,7 +160,6 @@ public class OrdenServicioService {
         Integer entradas = servicioRepository.calcularTotalEntradas(servicioId);
         Integer salidas = servicioRepository.calcularTotalSalidas(servicioId);
         int stockActual = entradas - salidas;
-
         if (stockActual < cantidadSolicitada) {
             throw new InsufficientStockException(
                     "Stock insuficiente de producto. Disponible: " + stockActual + ", Solicitado: " + cantidadSolicitada);

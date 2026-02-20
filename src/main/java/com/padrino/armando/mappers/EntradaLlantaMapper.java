@@ -38,6 +38,12 @@ public class EntradaLlantaMapper {
                 .cantidad(detalle.getCantidad())
                 .precioUnitario(detalle.getPrecioUnitario())
                 .precioTotal(detalle.getPrecioTotal())
+                // Campos de costo
+                .moneda(detalle.getMoneda())
+                .costoUnitario(detalle.getCostoUnitario())
+                .tipoCambio(detalle.getTipoCambio())
+                .costoUnitarioSoles(detalle.getCostoUnitarioSoles())
+                .costoTotalSoles(detalle.getCostoTotalSoles())
                 .build();
     }
 }

@@ -54,6 +54,11 @@ public class OrdenServicioMapper {
                 .cantidad(detalle.getCantidad())
                 .precioUnitario(detalle.getPrecioUnitario())
                 .precioTotal(detalle.getPrecioTotal())
+                // Campos de costo
+                .costoUnitario(detalle.getCostoUnitario())
+                .costoTotal(detalle.getCostoTotal())
+                .ganancia(detalle.getGanancia())
+                .margen(detalle.getMargen())
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import com.padrino.armando.dtos.entrada.EntradaResponseDTO;
 import com.padrino.armando.entities.DetalleEntradaLlanta;
 import com.padrino.armando.entities.EntradaLlanta;
 import com.padrino.armando.entities.Llanta;
+import com.padrino.armando.enums.Moneda;
 import com.padrino.armando.exceptions.ResourceNotFoundException;
 import com.padrino.armando.mappers.EntradaLlantaMapper;
 import com.padrino.armando.repositories.EntradaLlantaRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +67,27 @@ public class EntradaLlantaService {
                     .precioUnitario(detalleDTO.getPrecioUnitario())
                     .precioTotal(precioTotal)
                     .build();
+
+            // === Calcular costo en soles ===
+            if (detalleDTO.getMoneda() != null && detalleDTO.getCostoUnitario() != null) {
+                detalle.setMoneda(detalleDTO.getMoneda());
+                detalle.setCostoUnitario(detalleDTO.getCostoUnitario());
+                detalle.setTipoCambio(detalleDTO.getTipoCambio());
+
+                if (detalleDTO.getMoneda() == Moneda.DOL && detalleDTO.getTipoCambio() != null) {
+                    // Dólares: convertir a soles
+                    BigDecimal costoSoles = detalleDTO.getCostoUnitario()
+                            .multiply(detalleDTO.getTipoCambio())
+                            .setScale(2, RoundingMode.HALF_UP);
+                    detalle.setCostoUnitarioSoles(costoSoles);
+                    detalle.setCostoTotalSoles(costoSoles.multiply(BigDecimal.valueOf(detalleDTO.getCantidad())));
+                } else {
+                    // Soles: el costo ya está en soles
+                    detalle.setCostoUnitarioSoles(detalleDTO.getCostoUnitario());
+                    detalle.setCostoTotalSoles(detalleDTO.getCostoUnitario()
+                            .multiply(BigDecimal.valueOf(detalleDTO.getCantidad())));
+                }
+            }
 
             entrada.getDetalles().add(detalle);
             total = total.add(precioTotal);
