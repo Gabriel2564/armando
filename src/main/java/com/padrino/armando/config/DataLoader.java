@@ -1,8 +1,10 @@
 package com.padrino.armando.config;
 
 import com.padrino.armando.entities.Llanta;
+import com.padrino.armando.entities.Proveedor;
 import com.padrino.armando.entities.Servicio;
 import com.padrino.armando.repositories.LlantaRepository;
+import com.padrino.armando.repositories.ProveedorRepository;
 import com.padrino.armando.repositories.ServicioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,12 +23,47 @@ public class DataLoader implements CommandLineRunner {
 
     private final LlantaRepository llantaRepository;
     private final ServicioRepository servicioRepository;
+    private final ProveedorRepository proveedorRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
+        cargarProveedores();
         cargarLlantas();
         cargarServicios();
+    }
+
+    private void cargarProveedores() {
+        if (proveedorRepository.count() > 0) {
+            log.info("Proveedores ya cargados, se omite la carga inicial.");
+            return;
+        }
+        log.info("Cargando maestro de proveedores...");
+
+        String[][] provData = {
+                {"20101082840", "ABUGATTAS & PERATA INTERNACIONAL SAC"},
+                {"20100025915", "ALFREDO PIMENTEL SEVILLA SA"},
+                {"20100279003", "DISTRIBUIDORA DE LUBRICANTES ESSA EIRL"},
+                {"20546850502", "E&V NEUMATICOS SRL"},
+                {"20518778707", "J VEGA IMPORT SAC"},
+                {"20318171701", "JCH COMERCIAL SA"},
+                {"20492565319", "LLANMAXXI DEL PERU SAC"},
+                {"20381499627", "LLANTA SAN MARTIN SRL"},
+                {"20505103794", "LLANTAMIGO SAC"},
+                {"20550856337", "ALVILLANTAS EIRL"},
+                {"20112827171", "DISTRIBUCIONES Y REPRESENTACIONES LIMATAMBO SRL"},
+                {"20140441083", "TIRE SOL SAC"},
+                {"20167930868", "PTS SA"},
+                {"20602119531", "GOODRIDE DEL PERU SAC"},
+        };
+
+        for (String[] row : provData) {
+            if (!proveedorRepository.existsByRuc(row[0])) {
+                proveedorRepository.save(Proveedor.builder()
+                        .ruc(row[0]).nombre(row[1]).activo(true).build());
+            }
+        }
+        log.info("Maestro de proveedores cargado: {} registros.", proveedorRepository.count());
     }
 
     private void cargarLlantas() {
