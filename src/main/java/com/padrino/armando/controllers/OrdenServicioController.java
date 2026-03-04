@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 @RestController
@@ -56,5 +58,12 @@ public class OrdenServicioController {
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         ordenServicioService.eliminar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/siguiente-numero")
+    public Map<String, String> siguienteNumeroOrden() {
+        Map<String, String> response = new HashMap<>();
+        response.put("numeroOrden", ordenServicioService.generarSiguienteNumeroOrden());
+        return response;
     }
 }

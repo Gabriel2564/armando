@@ -14,16 +14,16 @@ public class KardexItemDTO {
 
     // Columnas de ENTRADA
     private Integer entradaCantidad;
-    private BigDecimal entradaCosto;
-    private BigDecimal entradaTotal;
+    private BigDecimal entradaCosto;   // costo unitario con hasta 4 decimales
+    private BigDecimal entradaTotal;   // = entradaCosto * entradaCantidad (mostrado con 2 dec)
 
     // Columnas de SALIDA
     private Integer salidaCantidad;
-    private BigDecimal salidaCosto;
-    private BigDecimal salidaTotal;
+    private BigDecimal salidaCosto;    // = costoPromedio vigente (2 decimales)
+    private BigDecimal salidaTotal;    // = salidaCosto * salidaCantidad (2 decimales)
 
     // Columnas de SALDO
     private Integer saldoCantidad;
-    private BigDecimal saldoValor;
-    private BigDecimal costoPromedio;
+    private BigDecimal saldoValor;     // mostrado con 2 decimales
+    private BigDecimal costoPromedio;  // = saldoValor / saldoCantidad (2 decimales)
 }

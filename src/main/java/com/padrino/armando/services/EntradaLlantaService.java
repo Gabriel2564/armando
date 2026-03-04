@@ -65,7 +65,7 @@ public class EntradaLlantaService {
                     .llanta(llanta)
                     .cantidad(detalleDTO.getCantidad())
                     .precioUnitario(detalleDTO.getPrecioUnitario())
-                    .precioTotal(precioTotal)
+                    .precioTotal(precioTotal.setScale(2, RoundingMode.HALF_UP))
                     .build();
 
             // === Calcular costo en soles ===
@@ -75,17 +75,23 @@ public class EntradaLlantaService {
                 detalle.setTipoCambio(detalleDTO.getTipoCambio());
 
                 if (detalleDTO.getMoneda() == Moneda.DOL && detalleDTO.getTipoCambio() != null) {
-                    // Dólares: convertir a soles
+                    // Dólares: convertir a soles, mantener 4 decimales
                     BigDecimal costoSoles = detalleDTO.getCostoUnitario()
                             .multiply(detalleDTO.getTipoCambio())
-                            .setScale(2, RoundingMode.HALF_UP);
+                            .setScale(4, RoundingMode.HALF_UP);
                     detalle.setCostoUnitarioSoles(costoSoles);
-                    detalle.setCostoTotalSoles(costoSoles.multiply(BigDecimal.valueOf(detalleDTO.getCantidad())));
+                    // costoTotalSoles: sin redondeo intermedio (precision completa)
+                    detalle.setCostoTotalSoles(costoSoles
+                            .multiply(BigDecimal.valueOf(detalleDTO.getCantidad()))
+                            .setScale(4, RoundingMode.HALF_UP));
                 } else {
-                    // Soles: el costo ya está en soles
-                    detalle.setCostoUnitarioSoles(detalleDTO.getCostoUnitario());
-                    detalle.setCostoTotalSoles(detalleDTO.getCostoUnitario()
-                            .multiply(BigDecimal.valueOf(detalleDTO.getCantidad())));
+                    // Soles: guardar con hasta 4 decimales
+                    BigDecimal costoSoles = detalleDTO.getCostoUnitario()
+                            .setScale(4, RoundingMode.HALF_UP);
+                    detalle.setCostoUnitarioSoles(costoSoles);
+                    detalle.setCostoTotalSoles(costoSoles
+                            .multiply(BigDecimal.valueOf(detalleDTO.getCantidad()))
+                            .setScale(4, RoundingMode.HALF_UP));
                 }
             }
 
@@ -93,7 +99,7 @@ public class EntradaLlantaService {
             total = total.add(precioTotal);
         }
 
-        entrada.setTotal(total);
+        entrada.setTotal(total.setScale(2, RoundingMode.HALF_UP));
         entrada = entradaLlantaRepository.save(entrada);
         return entradaLlantaMapper.toResponseDTO(entrada);
     }

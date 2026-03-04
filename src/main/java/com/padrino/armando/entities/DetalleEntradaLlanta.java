@@ -34,20 +34,20 @@ public class DetalleEntradaLlanta {
     @Column(name = "precio_total", precision = 10, scale = 2)
     private BigDecimal precioTotal;
 
-    // === Campos nuevos para costeo ===
+    // === Campos para costeo (alta precision) ===
     @Enumerated(EnumType.STRING)
     @Column(name = "moneda")
     private Moneda moneda;
 
-    @Column(name = "costo_unitario", precision = 10, scale = 2)
+    @Column(name = "costo_unitario", precision = 12, scale = 4)
     private BigDecimal costoUnitario;
 
     @Column(name = "tipo_cambio", precision = 10, scale = 4)
     private BigDecimal tipoCambio;
 
-    @Column(name = "costo_unitario_soles", precision = 10, scale = 2)
+    @Column(name = "costo_unitario_soles", precision = 12, scale = 4)
     private BigDecimal costoUnitarioSoles;
 
-    @Column(name = "costo_total_soles", precision = 12, scale = 2)
+    @Column(name = "costo_total_soles", precision = 14, scale = 4)
     private BigDecimal costoTotalSoles;
 }

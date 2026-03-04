@@ -1,6 +1,7 @@
 package com.padrino.armando.entities;
 
 import com.padrino.armando.enums.FormaPago;
+import com.padrino.armando.enums.TipoComprobante;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -31,6 +32,13 @@ public class OrdenServicio {
     private String cliente;
 
     private String placa;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_comprobante")
+    private TipoComprobante tipoComprobante;
+
+    @Column(name = "numero_comprobante")
+    private String numeroComprobante;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "forma_pago")

@@ -1,6 +1,7 @@
 package com.padrino.armando.dtos.orden;
 
 import com.padrino.armando.enums.FormaPago;
+import com.padrino.armando.enums.TipoComprobante;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,4 +21,6 @@ public class OrdenServicioResponseDTO {
     private FormaPago formaPago;
     private BigDecimal total;
     private List<DetalleOrdenResponseDTO> detalles;
+    private TipoComprobante tipoComprobante;
+    private String numeroComprobante;
 }

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +63,11 @@ public class OrdenServicioService {
 
     @Transactional
     public OrdenServicioResponseDTO registrar(OrdenServicioRequestDTO dto) {
+        // Auto-generar número de orden si viene vacío
+        if (dto.getNumeroOrden() == null || dto.getNumeroOrden().isBlank()) {
+            dto.setNumeroOrden(generarSiguienteNumeroOrden());
+        }
+
         if (ordenServicioRepository.existsByNumeroOrden(dto.getNumeroOrden())) {
             throw new DuplicateResourceException("Ya existe una orden con número: " + dto.getNumeroOrden());
         }
@@ -73,6 +79,8 @@ public class OrdenServicioService {
                 .cliente(dto.getCliente())
                 .placa(dto.getPlaca())
                 .formaPago(dto.getFormaPago())
+                .tipoComprobante(dto.getTipoComprobante())
+                .numeroComprobante(dto.getNumeroComprobante())
                 .detalles(new ArrayList<>())
                 .build();
 
@@ -164,5 +172,19 @@ public class OrdenServicioService {
             throw new InsufficientStockException(
                     "Stock insuficiente de producto. Disponible: " + stockActual + ", Solicitado: " + cantidadSolicitada);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public String generarSiguienteNumeroOrden() {
+        Optional<String> maxOrden = ordenServicioRepository.findMaxNumeroOrden();
+        if (maxOrden.isPresent() && maxOrden.get() != null) {
+            try {
+                long numero = Long.parseLong(maxOrden.get());
+                return String.format("%010d", numero + 1);
+            } catch (NumberFormatException e) {
+                return "0000000001";
+            }
+        }
+        return "0000000001";
     }
 }

@@ -26,6 +26,8 @@ public class OrdenServicioMapper {
                 .formaPago(orden.getFormaPago())
                 .total(orden.getTotal())
                 .detalles(detallesDTO)
+                .tipoComprobante(orden.getTipoComprobante())
+                .numeroComprobante(orden.getNumeroComprobante())
                 .build();
     }
 

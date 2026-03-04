@@ -1,6 +1,7 @@
 package com.padrino.armando.dtos.orden;
 
 import com.padrino.armando.enums.FormaPago;
+import com.padrino.armando.enums.TipoComprobante;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,8 +15,10 @@ import java.util.List;
 @Builder
 public class OrdenServicioRequestDTO {
 
-    @NotBlank(message = "El número de orden es obligatorio")
     private String numeroOrden;
+
+    private TipoComprobante tipoComprobante;
+    private String numeroComprobante;
 
     @NotNull(message = "La fecha es obligatoria")
     private LocalDate fecha;

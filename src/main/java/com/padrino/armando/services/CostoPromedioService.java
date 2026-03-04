@@ -46,10 +46,20 @@ public class CostoPromedioService {
     /**
      * Construye el Kardex completo de un producto (llanta):
      * lista cronologica de entradas y salidas con costo promedio movil.
+     *
+     * REGLAS DE PRECISION (verificadas contra Excel):
+     * - costoUnitario de entrada: se guarda con 4 decimales (ej: 136.3232)
+     * - entradaTotal: costoUnit * cantidad SIN redondeo (ej: 136.3232 * 4 = 545.2928)
+     * - saldoValor: se mantiene con alta precision interna
+     * - costoPromedio: saldoValor / saldoCantidad, redondeado a 2 decimales
+     * - salidaCosto: usa el costoPromedio vigente (ya redondeado a 2)
+     * - salidaTotal: salidaCosto * cantidad, redondeado a 2
+     * - Al mostrar saldoValor: se redondea a 2 decimales
+     * - Cuando stock llega a 0: se resetea saldoValor a 0 (elimina residuos de centavo)
      */
     @Transactional(readOnly = true)
     public List<KardexItemDTO> construirKardex(Long llantaId) {
-        Llanta llanta = llantaRepository.findById(llantaId)
+        llantaRepository.findById(llantaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Llanta no encontrada con ID: " + llantaId));
 
         // Obtener todas las entradas de esta llanta
@@ -62,13 +72,16 @@ public class CostoPromedioService {
         List<Movimiento> movimientos = new ArrayList<>();
 
         for (DetalleEntradaLlanta e : entradas) {
-            BigDecimal costoUnit = e.getCostoUnitarioSoles() != null ? e.getCostoUnitarioSoles() : e.getPrecioUnitario();
+            // Preferir costoUnitarioSoles (4 decimales), si no existe usar precioUnitario
+            BigDecimal costoUnit = e.getCostoUnitarioSoles() != null
+                    ? e.getCostoUnitarioSoles()
+                    : (e.getPrecioUnitario() != null ? e.getPrecioUnitario() : BigDecimal.ZERO);
             movimientos.add(new Movimiento(
                     e.getEntradaLlanta().getFecha(),
                     e.getEntradaLlanta().getId(),
                     "ENTRADA",
                     e.getCantidad(),
-                    costoUnit != null ? costoUnit : BigDecimal.ZERO
+                    costoUnit
             ));
         }
 
@@ -90,6 +103,8 @@ public class CostoPromedioService {
 
         // Recorrer y calcular costo promedio movil
         List<KardexItemDTO> kardex = new ArrayList<>();
+
+        // saldoValor mantiene ALTA PRECISION internamente (no se redondea entre pasos)
         BigDecimal saldoValor = BigDecimal.ZERO;
         int saldoCantidad = 0;
         BigDecimal costoPromedio = BigDecimal.ZERO;
@@ -102,32 +117,39 @@ public class CostoPromedioService {
             if ("ENTRADA".equals(mov.tipo())) {
                 item.setEntradaCantidad(mov.cantidad());
                 item.setEntradaCosto(mov.costoUnitario());
-                BigDecimal entradaTotal = mov.costoUnitario().multiply(BigDecimal.valueOf(mov.cantidad()));
-                item.setEntradaTotal(entradaTotal);
 
+                // entradaTotal = costoUnit * cantidad SIN redondeo intermedio
+                BigDecimal entradaTotal = mov.costoUnitario().multiply(BigDecimal.valueOf(mov.cantidad()));
+                item.setEntradaTotal(entradaTotal.setScale(2, RoundingMode.HALF_UP));
+
+                // Sumar al saldo SIN redondear (mantener precision completa)
                 saldoValor = saldoValor.add(entradaTotal);
                 saldoCantidad += mov.cantidad();
 
             } else { // SALIDA
-                // Usar el costo promedio vigente
+                // Usar el costo promedio vigente (ya redondeado a 2 decimales)
                 item.setSalidaCantidad(mov.cantidad());
                 item.setSalidaCosto(costoPromedio);
-                BigDecimal salidaTotal = costoPromedio.multiply(BigDecimal.valueOf(mov.cantidad()));
+                BigDecimal salidaTotal = costoPromedio.multiply(BigDecimal.valueOf(mov.cantidad()))
+                        .setScale(2, RoundingMode.HALF_UP);
                 item.setSalidaTotal(salidaTotal);
 
+                // Restar del saldo
                 saldoValor = saldoValor.subtract(salidaTotal);
                 saldoCantidad -= mov.cantidad();
             }
 
             item.setSaldoCantidad(saldoCantidad);
-            item.setSaldoValor(saldoValor);
 
             if (saldoCantidad > 0) {
                 costoPromedio = saldoValor.divide(BigDecimal.valueOf(saldoCantidad), 2, RoundingMode.HALF_UP);
             } else {
                 costoPromedio = BigDecimal.ZERO;
-                saldoValor = BigDecimal.ZERO; // Reset cuando llega a 0
+                saldoValor = BigDecimal.ZERO; // Reset: eliminar residuos de centavo
             }
+
+            // Mostrar saldoValor redondeado a 2 decimales
+            item.setSaldoValor(saldoValor.setScale(2, RoundingMode.HALF_UP));
             item.setCostoPromedio(costoPromedio);
 
             kardex.add(item);
